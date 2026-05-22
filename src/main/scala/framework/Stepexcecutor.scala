@@ -7,35 +7,46 @@ object StepExecutor {
 
   private val log = LoggerFactory.getLogger(getClass)
 
-  // deserializedResult carries the case class instance from the deserialize step
-  def run(step: StepConfig, input: String, deserializedResult: Option[Any] = None): Any = {
-    step.step match {
+  // stepIndex passed in so PersistStore can key every output by position
+  def run(step: StepConfig, input: String, stepIndex: Int): Any = {
+
+    val result = step.step match {
 
       case "deserialize" =>
         val responseType = step.responseType.getOrElse(
-          throw new RuntimeException("[StepExecutor] 'response_type' is required on deserialize step")
+          throw new RuntimeException("[StepExecutor] 'response_type' required on deserialize step")
         )
-        log.info(s"[Step: deserialize] response_type = $responseType")
-        val result = Deserializer.run(input, responseType)
-        log.info(s"[Step: deserialize] Output = $result")
-        result
+        log.info(s"[Step: deserialize] response_type=$responseType")
+        val out = Deserializer.run(input, responseType)
+        log.info(s"[Step: deserialize] Output=$out")
+        out
 
       case "log" =>
         log.info(s"[Step: log] $input")
         input
 
       case "invoke" =>
-        val target = s"${step.packageName.getOrElse("")}.${step.className.getOrElse("")}.${step.method.getOrElse("")}"
-        log.info(s"[Step: invoke] Calling $target with args = ${step.args}")
-        val resolved = deserializedResult.getOrElse(
-          throw new RuntimeException("[StepExecutor] invoke step requires deserialize to run first")
+        val fetchId = step.fetchFromPersistId.getOrElse(
+          throw new RuntimeException("[StepExecutor] 'fetch-from-persist-id' required on invoke step")
         )
-        val result = UtilInvoker.run(step, resolved)
-        log.info(s"[Step: invoke] Output = $result")
-        result
+        val source = PersistStore.fetch(fetchId)
+        log.info(s"[Step: invoke] Fetched persist-id=$fetchId  value=$source")
+        val out = UtilInvoker.run(step, source)
+        log.info(s"[Step: invoke] Output=$out")
+        out
 
       case unknown =>
-        throw new RuntimeException(s"[StepExecutor] Unknown step type: '$unknown'")
+        throw new RuntimeException(s"[StepExecutor] Unknown step: '$unknown'")
     }
+
+    // Always store every step output by index — no condition, no opt-in
+    PersistStore.save(stepIndex, result)
+
+    // If step has persist-id, register it as a named alias over that index
+    step.persistId.foreach { id =>
+      PersistStore.registerAlias(id, stepIndex)
+    }
+
+    result
   }
 }
