@@ -1,0 +1,16 @@
+feature:
+  name: forecast_pipeline
+
+  steps:
+    - step: deserialize
+      response_type: com.zoho.crm.feature.forecast.integration.v4.schemas.ForecastInputRequest
+
+    - step: log
+
+    - step: invoke
+      package: crm.core.utils
+      class: CrmUtil
+      method: helper
+      args:
+        - forecast_id
+        - hierarchy_type
