@@ -130,7 +130,7 @@ object ForecastInputRequest {
 The developer writes `reads` and `writes` exactly as they always would for Play JSON.
 No new interface to implement. No framework trait to extend. Just their normal FORMAT.
 
-### 2. Utility method
+### 2. Util method
 
 ```scala
 class CrmUtil {
