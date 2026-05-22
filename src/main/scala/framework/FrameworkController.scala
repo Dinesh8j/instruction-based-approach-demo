@@ -20,7 +20,6 @@ object FrameworkController {
 
     var result: Any = input
 
-    // zipWithIndex gives each step its index for PersistStore keying
     config.steps.zipWithIndex.foreach { case (stepConfig, index) =>
       log.info(s"[Controller] -- step[$index]: ${stepConfig.step}")
       result = StepExecutor.run(stepConfig, input, index)
