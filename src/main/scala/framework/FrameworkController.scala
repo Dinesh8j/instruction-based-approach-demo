@@ -9,24 +9,21 @@ object FrameworkController {
 
   def process(input: String, configPath: String): Any = {
 
-    log.info(s"[Controller] Input    : $input")
-    log.info(s"[Controller] Config   : $configPath")
+    log.info(s"[Controller] Input   : $input")
+    log.info(s"[Controller] Config  : $configPath")
+
+    PersistStore.clear()
 
     val config = YamlLoader.load(configPath)
+    log.info(s"[Controller] Feature : ${config.name}")
+    log.info(s"[Controller] Steps   : ${config.steps.map(_.step).mkString(" -> ")}")
 
-    log.info(s"[Controller] Feature  : ${config.name}")
-    log.info(s"[Controller] Steps    : ${config.steps.map(_.step).mkString(" -> ")}")
+    var result: Any = input
 
-    var result: Any             = input
-    var deserialized: Option[Any] = None   // carries case class instance for invoke step
-
-    config.steps.foreach { stepConfig =>
-      log.info(s"[Controller] -- Running step: ${stepConfig.step}")
-
-      result = StepExecutor.run(stepConfig, input, deserialized)
-
-      // Once deserialize runs, hold the result for subsequent invoke steps
-      if (stepConfig.step == "deserialize") deserialized = Some(result)
+    // zipWithIndex gives each step its index for PersistStore keying
+    config.steps.zipWithIndex.foreach { case (stepConfig, index) =>
+      log.info(s"[Controller] -- step[$index]: ${stepConfig.step}")
+      result = StepExecutor.run(stepConfig, input, index)
     }
 
     log.info(s"[Controller] Done. Final output: $result")
