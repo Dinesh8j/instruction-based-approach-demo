@@ -7,7 +7,6 @@ object StepExecutor {
 
   private val log = LoggerFactory.getLogger(getClass)
 
-  // stepIndex passed in so PersistStore can key every output by position
   def run(step: StepConfig, input: String, stepIndex: Int): Any = {
 
     val result = step.step match {
@@ -26,11 +25,11 @@ object StepExecutor {
         input
 
       case "invoke" =>
-        val fetchId = step.fetchFromPersistId.getOrElse(
+        val fetchIndex = step.fetchFromPersistId.getOrElse(
           throw new RuntimeException("[StepExecutor] 'fetch-from-persist-id' required on invoke step")
         )
-        val source = PersistStore.fetch(fetchId)
-        log.info(s"[Step: invoke] Fetched persist-id=$fetchId  value=$source")
+        val source = PersistStore.fetch(fetchIndex)
+        log.info(s"[Step: invoke] Fetched step[$fetchIndex]  →  $source")
         val out = UtilInvoker.run(step, source)
         log.info(s"[Step: invoke] Output=$out")
         out
@@ -39,13 +38,8 @@ object StepExecutor {
         throw new RuntimeException(s"[StepExecutor] Unknown step: '$unknown'")
     }
 
-    // Always store every step output by index — no condition, no opt-in
+    // Always save every step output — no condition, no opt-in
     PersistStore.save(stepIndex, result)
-
-    // If step has persist-id, register it as a named alias over that index
-    step.persistId.foreach { id =>
-      PersistStore.registerAlias(id, stepIndex)
-    }
 
     result
   }
