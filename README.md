@@ -2,8 +2,8 @@
 
 ## What This Is
 
-A YAML-driven Scala framework where the developer only writes case classes and business logic.
-The framework reads a config file and handles deserialization, logging, and utility invocation automatically.
+A YAML-driven Scala framework where the developer only writes case classes and business logic that deviates from existing logic.
+The framework reads a YAML file and handles deserialization, logging, and util invocation automatically.
 
 ---
 
@@ -13,7 +13,7 @@ Most frameworks make the developer write wiring code — registering handlers, w
 This framework inverts that. The developer writes **only**:
 
 - A case class with Play JSON `reads` / `writes`
-- A utility method with business logic
+- A util method with business logic(Optional)
 - One line in `DecoderRegistry`
 
 Everything else — parsing the input, deserializing to the right type, calling the right method, logging — is driven by the YAML config.
