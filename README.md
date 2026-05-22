@@ -205,13 +205,3 @@ can access the typed case class in subsequent steps.
 **Zero framework files change** beyond the one-line registry entry.
 
 ---
-
-## Design Decisions Worth Noting
-
-| Decision | Reason |
-|---|---|
-| Play JSON `Format` instead of circe | Developer already uses Play JSON throughout the codebase — no new dependency |
-| Runtime reflection for util invocation | Developer writes a plain class with no framework trait — zero coupling |
-| `response_type` as fully qualified string | Unambiguous at runtime — no classpath scanning needed |
-| `deserialized: Option[Any]` in controller | Passes typed result between steps without a generic pipeline abstraction |
-| SnakeYAML for config parsing | No macro or compile-time config — YAML changes take effect without recompile |
