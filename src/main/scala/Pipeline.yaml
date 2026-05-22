@@ -2,15 +2,16 @@ feature:
   name: forecast_pipeline
 
   steps:
-    - step: deserialize
+    - step: deserialize          # index 0 — stored automatically
       response_type: com.zoho.crm.feature.forecast.integration.v4.schemas.ForecastInputRequest
 
-    - step: log
+    - step: log                  # index 1 — stored automatically
 
-    - step: invoke
+    - step: invoke               # index 2
       package: crm.core.utils
       class: CrmUtil
       method: helper
+      fetch-from-persist-id: 0   # fetch output of step[0] → ForecastInputRequest
       args:
         - forecast_id
         - hierarchy_type
